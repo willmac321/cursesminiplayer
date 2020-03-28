@@ -1,0 +1,2 @@
+
+RIGHT_ARROW = '|\\n|/'
