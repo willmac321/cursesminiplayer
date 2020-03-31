@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-
-import sys
-import os
 import curses
 import threading
-import time
 from player.curses_object import Curse
-
+from player.spotify import Spotify
 
 class Main:
 
     def __init__(self):
+
         self.menu_items = ['Log In']
         self.curse_window = None
         self.curse_thread = None
+        self.spotify_thread = None
+        self.spotify_thread = Spotify()
+
         curses.wrapper(self.start_curses)
 
     def start_curses(self, stdscr):
@@ -23,11 +23,7 @@ class Main:
             target=self.curse_window.run,
         )
         self.curse_thread.start()
-        time.sleep(1)
-        self.curse_window.add_to_queue('aaaast')
-        self.curse_window.add_to_queue('tesst')
-        time.sleep(1)
-        self.curse_window.add_to_queue('tesst')
+        self.curse_window.add_to_title_q('aaaast')
 
 
 if __name__ == '__main__':

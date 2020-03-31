@@ -13,7 +13,7 @@ class Color(enum.Enum):
 class Curse:
 
     def __init__(self, stdscr):
-        self.log_queue = deque()
+        self.song_name_q = deque()
         self.y = 1
         self.x = 1
         curses.noecho()
@@ -38,12 +38,12 @@ class Curse:
         self.outscr = curses.newwin(int(self.height / 2), self.width,
                                     int(self.height / 2), 0)
 
-    def add_to_queue(self, val):
-        self.log_queue.append(val)
+    def add_to_title_q(self, val):
+        self.song_name_q.append(val)
 
     def print_log(self):
-        if self.log_queue:
-            text = self.log_queue.popleft()
+        if self.song_name_q:
+            text = self.song_name_q.popleft()
             self.menuscr.addstr(self.y, self.x, text)
             self.y += 1
             self.menuscr.refresh()
@@ -76,5 +76,5 @@ class Curse:
             #            printscr.refresh()
 
             # Wait for next input
-            if k != ord('q'):
-                k = self.stdscr.getch()
+            # if k != ord('q'):
+            #     k = self.stdscr.getch()
