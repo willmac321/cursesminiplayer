@@ -4,7 +4,6 @@ import os
 import spotipy
 import spotipy.util as util
 import math
-import threading
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
