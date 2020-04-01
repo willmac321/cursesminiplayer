@@ -39,6 +39,9 @@ class Curse:
         self.x_artist = 1
         self.y_album = 4
         self.x_album = 1
+        self.artist_marquee = -1
+        self.title_marquee = -1
+        self.album_marquee = -1
 
         # Clear and refresh the screen for a blank canvas
         stdscr.clear()
@@ -152,6 +155,14 @@ class Curse:
             self.print_album()
             self.infoscr.refresh()
 
+    def marquee(self):
+        if self.artist_marquee > -1:
+            self.clear_info()
+            self.print_title()
+            self.print_artists()
+            self.print_album()
+            self.infoscr.refresh()
+
     def clear_info(self):
         y, x = self.infoscr.getmaxyx()
         x -= 2
@@ -162,19 +173,43 @@ class Curse:
     def print_title(self):
         y, x = self.infoscr.getmaxyx()
         name = self.info['name']
-        if len(name) > (x - 2):
-            name = name[0:(x - 2) - 3] + '...'
+        length = len(name) + 3
 
-        self.infoscr.addstr(self.y_title, self.x_title, name,
+        if len(name) > (x - 2) and self.title_marquee == -1:
+            title_out = name[0:(x - 2) - 3] + '...'
+            self.title_marquee = 1
+        elif self.title_marquee > -1:
+            name = name + '   ' + name
+            title_out = name[self.title_marquee:(x - 2) + self.title_marquee]
+
+            self.title_marquee += 1
+        else:
+            title_out = name
+
+        if self.title_marquee > length - 1:
+            self.title_marquee = 0
+
+        self.infoscr.addstr(self.y_title, self.x_title, title_out,
                             curses.A_BOLD)
 
     def print_album(self):
         y, x = self.infoscr.getmaxyx()
         name = self.info['album']['name']
-        if len(name) > (x - 2):
-            name = name[0:(x - 2) - 3] + '...'
-        self.infoscr.addstr(self.y_album, self.x_album,
-                            name, curses.A_DIM)
+
+        length = len(name) + 3
+        if len(name) > (x - 2) and self.album_marquee == -1:
+            album_out = name[0:(x - 2) - 3] + '...'
+            self.album_marquee = 1
+        elif self.album_marquee > -1:
+            name = name + '   ' + name
+            album_out = name[self.album_marquee:(x - 2) + self.album_marquee]
+            self.album_marquee += 1
+        else:
+            album_out = name
+
+        if self.album_marquee > length - 1:
+            self.album_marquee = 0
+        self.infoscr.addstr(self.y_album, self.x_album, album_out, curses.A_DIM)
 
     def print_artists(self):
         artists = ''
@@ -186,12 +221,21 @@ class Curse:
                 length += 1
             else:
                 artists = artists + ', ' + a['name']
+        length = len(artists) + 3
 
-        self.debug(artists)
-        if len(artists) > (x - 2):
+        if len(artists) > (x - 2) and self.artist_marquee == -1:
             artists_out = artists[0:(x - 2) - 3] + '...'
+            self.artist_marquee = 1
+        elif self.artist_marquee > -1:
+            artists = artists + '   ' + artists
+            artists_out = artists[self.artist_marquee:(x - 2) +
+                                  self.artist_marquee]
+            self.artist_marquee += 1
         else:
             artists_out = artists
+
+        if self.artist_marquee > length - 1:
+            self.artist_marquee = 0
 
         self.infoscr.addstr(self.y_artist, self.x_artist, artists_out)
 
