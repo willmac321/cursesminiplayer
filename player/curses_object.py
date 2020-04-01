@@ -11,6 +11,7 @@ class Color(enum.Enum):
     text = 2
     status_bar = 3
     buttons = 4
+    hearted = 5
 
 
 class Curse:
@@ -33,12 +34,12 @@ class Curse:
 
         self.song_info_q = deque()
         self.info = None
-        self.y_title = 1
-        self.x_title = 1
-        self.y_artist = 3
-        self.x_artist = 1
-        self.y_album = 4
-        self.x_album = 1
+        self.y_title = 0
+        self.x_title = 0
+        self.y_artist = 2
+        self.x_artist = 0
+        self.y_album = 3
+        self.x_album = 0
         self.artist_marquee = -1
         self.title_marquee = -1
         self.album_marquee = -1
@@ -51,7 +52,7 @@ class Curse:
         self.set_colors()
 
         self.stdscr = stdscr
-        self.height, self.width = stdscr.getmaxyx()  # 12, 60
+        self.height, self.width = 14, 80
         self.allscr = curses.newwin(self.height, self.width, 0, 0)
 
         # setup play status bar
@@ -59,10 +60,10 @@ class Curse:
                                                self.height - 4, 1)
 
         # the music info screen
-        self.infoscr = curses.newwin(5, int(self.width / 2), self.height - 13,
-                                     int(self.width / 4))
+        self.infoscr = curses.newwin(4, 25, self.height - 12,
+                                     int(self.width / 4) - 7)
 
-        self.button_right, self.button_left, self.button_play =\
+        self.button_right, self.button_left, self.button_play, self.button_heart =\
             self.create_buttons(self.height - 7, self.width)
 
         self.log_scr = curses.newwin(10, self.width - 2, 1, 1)
@@ -77,39 +78,72 @@ class Curse:
                          curses.COLOR_MAGENTA)
         curses.init_pair(Color.buttons.value, curses.COLOR_CYAN,
                          curses.COLOR_BLACK)
+        curses.init_pair(Color.hearted.value, curses.COLOR_RED,
+                         curses.COLOR_BLACK)
+
+    def reset_marquee(self):
+        self.artist_marquee = -1
+        self.title_marquee = -1
+        self.album_marquee = -1
 
     def mouse_click(self, x, y):
         if self.button_right.enclose(y, x):
-            self.draw_button(self.button_right, buttons.RIGHT_ARROW_OUTLINE,
-                             Color.background.value)
-            self.button_right.refresh()
+            self.reset_marquee()
             return 'next'
         elif self.button_left.enclose(y, x):
+            self.reset_marquee()
             return 'prev'
         elif self.button_play.enclose(y, x):
+            self.reset_marquee()
             return 'play'
         elif self.status_bar_window.enclose(y, x):
-            return x
-        return 'nahthing'
+            self.reset_marquee()
+            _, mx = self.status_bar_window.getmaxyx()
+            return str(x / (mx - 2))
+        return None
 
     def create_buttons(self, height, width):
         # the buttons
         left = self.allscr.derwin(3, 4, height, int(1 * width / 4) - 5)
         play = self.allscr.derwin(3, 5, height, int(width / 2) - 2)
         right = self.allscr.derwin(3, 4, height, int(3 * width / 4) + 1)
+        heart = self.allscr.derwin(5, 6, height - 6, 3)
 
-        return right, left, play
+        return right, left, play, heart
+
+    def update_play_button(self, is_play):
+        self.button_play.clear()
+        if is_play:
+            self.draw_button(self.button_play, buttons.PLAY_OUTLINE)
+        else:
+            self.draw_button(self.button_play, buttons.PAUSE_OUTLINE)
+
+        self.button_play.refresh()
+
+    def update_heart_button(self, is_heart):
+        self.button_heart.clear()
+        if not is_heart[0]:
+            self.draw_button(self.button_heart, buttons.HEART_OUTLINE,
+                             Color.hearted.value)
+        else:
+            self.draw_button(self.button_heart, buttons.HEART_SOLID,
+                             Color.hearted.value)
+
+        self.button_heart.refresh()
 
     def draw_buttons(self):
         self.draw_button(self.button_right, buttons.RIGHT_ARROW_OUTLINE)
         self.draw_button(self.button_left, buttons.LEFT_ARROW_OUTLINE)
-        self.draw_button(self.button_play, buttons.PAUSE_OUTLINE)
 
-        self.button_right.border()
+        self.draw_button(self.button_play, buttons.PLAY_OUTLINE)
+
+        self.draw_button(self.button_heart, buttons.HEART_OUTLINE,
+                         Color.hearted.value)
 
         self.button_right.refresh()
         self.button_left.refresh()
         self.button_play.refresh()
+        self.button_heart.refresh()
 
     def draw_button(self,
                     window,
@@ -148,20 +182,21 @@ class Curse:
         if self.song_info_q:
             # clear everything
             self.clear_status_bar()
-            self.clear_info()
             self.info = self.song_info_q.popleft()
-            self.print_title()
-            self.print_artists()
-            self.print_album()
-            self.infoscr.refresh()
+            self.redraw_info()
 
     def marquee(self):
-        if self.artist_marquee > -1:
-            self.clear_info()
-            self.print_title()
-            self.print_artists()
-            self.print_album()
-            self.infoscr.refresh()
+        if self.artist_marquee > -1\
+                or self.album_marquee > -1\
+                or self.title_marquee > -1:
+            self.redraw_info()
+
+    def redraw_info(self):
+        self.clear_info()
+        self.print_title()
+        self.print_artists()
+        self.print_album()
+        self.infoscr.refresh()
 
     def clear_info(self):
         y, x = self.infoscr.getmaxyx()
@@ -209,6 +244,7 @@ class Curse:
 
         if self.album_marquee > length - 1:
             self.album_marquee = 0
+
         self.infoscr.addstr(self.y_album, self.x_album, album_out, curses.A_DIM)
 
     def print_artists(self):
@@ -249,6 +285,8 @@ class Curse:
 
         self.status_bar_window.border()
         self.status_bar_window.refresh()
+
+        # self.infoscr.border()
 
         # self.infoscr.box()
         # self.infoscr.refresh()

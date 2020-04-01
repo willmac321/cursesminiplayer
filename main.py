@@ -2,9 +2,19 @@
 import curses
 import threading
 import sched
+import logging
+import os
 from time import sleep, time, monotonic
 from player.curses_object import Curse
 from player.spotify import Spotify
+
+class stdOut:
+    def __init__(self):
+        if os.path.exists('out.log'):
+            os.remove('out.log')
+        logging.basicConfig(level=logging.INFO, filename='out.log')
+    def write(self, txt):
+        logging.info(txt)
 
 
 class Main:
@@ -18,6 +28,7 @@ class Main:
         self.spotify_scheduler = sched.scheduler(time, sleep)
         self.spotify_event = None
         self.spotify_thread = None
+        self.log = stdOut()
 
         self.start_spotify()
 
@@ -29,6 +40,9 @@ class Main:
     def start_spotify(self):
         self.spotify = Spotify()
         self.spotify.login()
+        self.reset_spotify_thread()
+
+    def reset_spotify_thread(self):
         self.spotify_thread = threading.Thread(name='spotipy_daemon',
                                                target=self.update_spotify_info,
                                                daemon=True)
@@ -73,15 +87,25 @@ class Main:
                 #                self.curse_window.log_scr.addstr(" " + str(k))
                 #                self.curse_window.log_scr.refresh()
                 _, x, y, _, _ = curses.getmouse()
-                self.curse_window.log_scr.addstr(
-                    str(self.curse_window.mouse_click(x, y)))
-                self.curse_window.log_scr.refresh()
-                # self.curse_window.log_scr.addstr(str(x) + ' ' + y)
+                inp = self.curse_window.mouse_click(x, y)
+                if inp is not None:
+                    self.spotify.handle_input(inp)
+                    self.reset_spotify_thread()
+                    self.curse_window.update_play_button(
+                        not self.spotify.is_playing)
+
+            if k == curses.KEY_RESIZE:
+                self.curse_window.allscr.clear()
+                self.curse_window.draw_boxes()
+
+            # self.curse_window.log_scr.addstr(str(x) + ' ' + y)
+
             if (monotonic() - start_second) > 1:
                 start_second = monotonic()
                 self.curse_window.update_status_bar(
                     self.spotify.update_countdown())
                 self.curse_window.marquee()
+                self.curse_window.update_heart_button(self.spotify.is_heart)
 
 
 #            if k != -1:

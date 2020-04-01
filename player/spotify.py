@@ -2,6 +2,7 @@
 import sys
 import os
 import math
+import json
 from pprint import pprint
 from time import monotonic, time
 import spotipy
@@ -23,6 +24,7 @@ class Spotify:
         self.timer = None
         self.countdown_ms = None
         self.is_playing = False
+        self.ish_heart = False
         self.sp = None
         self.username = None
 
@@ -50,6 +52,31 @@ class Spotify:
     # int(round(time() * 1000)), self.song['timestamp'],
     # (int(round(time() * 1000)) - self.song['timestamp'])
 
+    def handle_input(self, inp):
+        if inp == 'next':
+            self.next_track()
+        elif inp == 'prev':
+            self.last_track()
+        elif inp == 'play':
+            if self.is_playing:
+                self.pause()
+            else:
+                self.start()
+        elif inp.isnumeric():
+            self.seek_track(inp)
+
+    def like_track(self):
+        self.sp.current_user_saved_tracks_add([self.song['item']['uri']])
+        return self.get_track()
+
+    def unlike_track(self):
+        self.sp.current_user_saved_tracks_delete([self.song['item']['uri']])
+        return self.get_track()
+
+    def is_track_liked(self):
+        self.is_heart = self.sp.current_user_saved_tracks_contains([self.song['item']['uri']])
+        return self.is_heart[0]
+
     def next_track(self):
         self.sp.next_track()
         return self.get_track()
@@ -60,6 +87,7 @@ class Spotify:
 
     def pause(self):
         self.sp.pause_playback()
+        return self.get_track()
 
     def start(self):
         self.sp.start_playback()
@@ -78,6 +106,7 @@ class Spotify:
         self.is_playing = self.song['is_playing']
         self.countdown_ms = self.song['item']['duration_ms'] - \
             self.song['progress_ms']
+        self.is_track_liked()
         return self.song['item']
 
         # Change track
