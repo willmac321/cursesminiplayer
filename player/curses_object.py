@@ -144,7 +144,7 @@ class Curse:
         elif self.status_bar_window.enclose(y, x):
             self.reset_marquee()
             _, mx = self.status_bar_window.getmaxyx()
-            return str(x / (mx - 2))
+            return str(x / (mx))
         return None
 
     def create_buttons(self, height, width):

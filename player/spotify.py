@@ -71,9 +71,8 @@ class Spotify:
                 self.unlike_track()
             else:
                 self.like_track()
-
-        elif inp.isnumeric():
-            self.seek_track(inp)
+        elif inp is not None:
+            self.seek_track(float(inp))
 
     def like_track(self):
         self.sp.current_user_saved_tracks_add([self.song['item']['uri']])
@@ -105,12 +104,12 @@ class Spotify:
         return self.get_track()
 
     def seek_track(self, percent):
-        ms = monotonic() / 1000
+        # ms = monotonic() / 1000
         self.sp.seek_track(
             math.floor(self.song['item']['duration_ms'] * percent))
-        self.song['item']['duration_ms'] = math.floor(
-            self.song['item']['duration_ms'] * percent +
-            (ms - monotonic() / 1000))
+        # self.song['item']['duration_ms'] = math.floor(
+        #     self.song['item']['duration_ms'] * percent +
+        #     (ms - monotonic() / 1000))
 
     def get_track(self):
         self.song = self.sp.currently_playing()
