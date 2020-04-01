@@ -4,4 +4,4 @@
 .env
 *.env*
 .cache*
-__pycache__/
+*/__pycache__/
