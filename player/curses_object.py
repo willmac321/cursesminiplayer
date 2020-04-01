@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import curses
 import enum
+import math
 from collections import deque
 import player.buttons_constants as buttons
 # from curses.textpad import Textbox, rectangle
@@ -12,6 +13,7 @@ class Color(enum.Enum):
     status_bar = 3
     buttons = 4
     hearted = 5
+    vis = 6
 
 
 class Curse:
@@ -44,6 +46,8 @@ class Curse:
         self.title_marquee = -1
         self.album_marquee = -1
 
+        self.last_vis_index = 0
+
         # Clear and refresh the screen for a blank canvas
         stdscr.clear()
 
@@ -63,10 +67,46 @@ class Curse:
         self.infoscr = curses.newwin(4, 25, self.height - 12,
                                      int(self.width / 4) - 7)
 
-        self.button_right, self.button_left, self.button_play, self.button_heart =\
-            self.create_buttons(self.height - 7, self.width)
+        self.button_right, self.button_left, self.button_play,\
+            self.button_heart = self.create_buttons(
+                self.height - 7, self.width)
+
+        self.visualizer = curses.newwin(4, 36, self.height - 12,
+                                        int(self.width / 4) - 7 + 28)
 
         self.log_scr = curses.newwin(10, self.width - 2, 1, 1)
+
+    def draw_vis(self, t, inp):
+
+        # guess at closest index by bpm and array index
+        # this doesn't work, all durations are different
+        # i = math.floor(t / 1000 / 60 * math.floor(inp['track']['tempo'])) - 1
+        i = self.last_vis_index
+        arr = []
+
+        for l in range(i, len(inp['segments'])):
+            start = inp['segments'][l]['start']
+            end = inp['segments'][l]['start'] + inp['segments'][l]['duration']
+
+            if t / 1000 >= start and t / 1000 <= end:
+                arr = inp['segments'][l]['pitches']
+                self.last_vis_index = l
+
+        # self.debug(str(math.floor(t / 1000 / 60 * math.floor(inp['track']['tempo']))))
+
+        self.visualizer.clear()
+        y, x = self.visualizer.getmaxyx()
+        inc = 0  # 36 / 12
+        # expect array of 12 items
+        for i in arr:
+            for t in range(2):
+                self.visualizer.vline(0, inc, ' ', y,
+                                      curses.color_pair(Color.vis.value))
+                self.visualizer.vline(0, inc, ' ', int(y - 4 * i),
+                                      curses.color_pair(Color.background.value))
+                inc += 1
+            inc += 1
+        self.visualizer.refresh()
 
     def set_colors(self):
         # these are for UI
@@ -80,11 +120,14 @@ class Curse:
                          curses.COLOR_BLACK)
         curses.init_pair(Color.hearted.value, curses.COLOR_RED,
                          curses.COLOR_BLACK)
+        curses.init_pair(Color.vis.value, curses.COLOR_BLUE,
+                         curses.COLOR_GREEN)
 
     def reset_marquee(self):
         self.artist_marquee = -1
         self.title_marquee = -1
         self.album_marquee = -1
+        self.last_vis_index = 0
 
     def mouse_click(self, x, y):
         if self.button_right.enclose(y, x):
@@ -96,6 +139,8 @@ class Curse:
         elif self.button_play.enclose(y, x):
             self.reset_marquee()
             return 'play'
+        elif self.button_heart.enclose(y, x):
+            return 'heart'
         elif self.status_bar_window.enclose(y, x):
             self.reset_marquee()
             _, mx = self.status_bar_window.getmaxyx()
@@ -122,7 +167,7 @@ class Curse:
 
     def update_heart_button(self, is_heart):
         self.button_heart.clear()
-        if not is_heart[0]:
+        if not is_heart:
             self.draw_button(self.button_heart, buttons.HEART_OUTLINE,
                              Color.hearted.value)
         else:
@@ -182,6 +227,7 @@ class Curse:
         if self.song_info_q:
             # clear everything
             self.clear_status_bar()
+            self.last_vis_index = 0
             self.info = self.song_info_q.popleft()
             self.redraw_info()
 
@@ -286,6 +332,7 @@ class Curse:
         self.status_bar_window.border()
         self.status_bar_window.refresh()
 
+        self.visualizer.refresh()
         # self.infoscr.border()
 
         # self.infoscr.box()

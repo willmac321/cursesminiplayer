@@ -4,15 +4,18 @@ import threading
 import sched
 import logging
 import os
-from time import sleep, time, monotonic
+from time import sleep, time, monotonic, monotonic_ns
 from player.curses_object import Curse
 from player.spotify import Spotify
 
+
 class stdOut:
+
     def __init__(self):
         if os.path.exists('out.log'):
             os.remove('out.log')
         logging.basicConfig(level=logging.INFO, filename='out.log')
+
     def write(self, txt):
         logging.info(txt)
 
@@ -40,6 +43,10 @@ class Main:
     def start_spotify(self):
         self.spotify = Spotify()
         self.spotify.login()
+        track_info = self.spotify.get_track()
+
+        if self.curse_window:
+            self.curse_window.add_to_info_q(track_info)
         self.reset_spotify_thread()
 
     def reset_spotify_thread(self):
@@ -71,21 +78,27 @@ class Main:
             self.spotify_scheduler.cancel(self.spotify_event)
 
     def run(self):
-        start_second = monotonic()
-        self.curse_window = self.start_curses()
         k = 0
-        #  mouse_arr = []
+
+        start_second = monotonic()
+        start_ms = monotonic() * 1000
+
+        self.curse_window = self.start_curses()
         self.curse_window.draw_boxes()
+        self.curse_window.print_info()
+        self.curse_window.marquee()
+        self.curse_window.update_heart_button(self.spotify.is_heart)
+
+#        if self.spotify.aa:
+#            bpm = self.spotify.get_audio_analysis()
+#            self.curse_window.debug(str(bpm))
+
         while k != ord('q'):
             self.curse_window.print_info()
 
-            # janky mouse crap because the getmouse func
-            # doesn't work in gnome shell or ubuntu 18.04
             k = self.curse_window.stdscr.getch()
 
             if k == curses.KEY_MOUSE:
-                #                self.curse_window.log_scr.addstr(" " + str(k))
-                #                self.curse_window.log_scr.refresh()
                 _, x, y, _, _ = curses.getmouse()
                 inp = self.curse_window.mouse_click(x, y)
                 if inp is not None:
@@ -98,37 +111,24 @@ class Main:
                 self.curse_window.allscr.clear()
                 self.curse_window.draw_boxes()
 
-            # self.curse_window.log_scr.addstr(str(x) + ' ' + y)
-
             if (monotonic() - start_second) > 1:
                 start_second = monotonic()
                 self.curse_window.update_status_bar(
-                    self.spotify.update_countdown())
+                    self.spotify.update_countdown_percent())
                 self.curse_window.marquee()
                 self.curse_window.update_heart_button(self.spotify.is_heart)
 
-
-#            if k != -1:
-#                mouse_arr.append(k)
-#            if k == ord('q') and len(mouse_arr) > 1:
-#                k = None
-
-#     # janky mouse crap because the getmouse func
-#     # doesn't work in gnome shell or ubuntu 18.04
-#     if len(mouse_arr) == 6\
-#             and mouse_arr[0] == 27 and mouse_arr[1] == 91\
-#             and mouse_arr[2] == 77 and mouse_arr[3] == 35:
-#         # there was a mouse up event!
-#         mx = mouse_arr[4]
-#         my = mouse_arr[5]
-#         self.curse_window.mouse_click(mx, my)
-#         mouse_arr = []
-#     elif len(mouse_arr) >= 6:
-#         mouse_arr = []
+            if (monotonic() * 1000 - start_ms) > 100:
+                start_ms = monotonic() * 1000
+                if self.spotify.aa:
+                    self.curse_window.draw_vis(self.spotify.update_countdown(),
+                                               self.spotify.aa)
+                # self.log.write(self.spotify.get_audio_analysis())
 
         self.curse_window.kill()
 
         self.stop_scheduler_spotify()
+
 
 if __name__ == '__main__':
     Main()

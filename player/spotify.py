@@ -19,12 +19,13 @@ class Spotify:
 
     def __init__(self):
 
-        self.scope = "user-read-playback-state,user-modify-playback-state"
+        self.scope = "user-read-playback-state,user-modify-playback-state,user-library-modify,user-library-read"
         self.song = None
         self.timer = None
         self.countdown_ms = None
         self.is_playing = False
-        self.ish_heart = False
+        self.is_heart = False
+        self.aa = None
         self.sp = None
         self.username = None
 
@@ -38,6 +39,9 @@ class Spotify:
         token = util.prompt_for_user_token(self.username, self.scope)
         self.sp = spotipy.Spotify(auth=token)
 
+    def update_countdown_percent(self):
+        return self.update_countdown() / self.song['item']['duration_ms']
+
     def update_countdown(self):
         # return percent
         if self.is_playing:
@@ -46,7 +50,7 @@ class Spotify:
         else:
             elapsed = self.song['progress_ms']
 
-        return elapsed / self.song['item']['duration_ms']
+        return elapsed
 
     # , self.song['item']['duration_ms'], self.song['progress_ms'],
     # int(round(time() * 1000)), self.song['timestamp'],
@@ -62,6 +66,12 @@ class Spotify:
                 self.pause()
             else:
                 self.start()
+        elif inp == 'heart':
+            if self.is_heart:
+                self.unlike_track()
+            else:
+                self.like_track()
+
         elif inp.isnumeric():
             self.seek_track(inp)
 
@@ -74,8 +84,9 @@ class Spotify:
         return self.get_track()
 
     def is_track_liked(self):
-        self.is_heart = self.sp.current_user_saved_tracks_contains([self.song['item']['uri']])
-        return self.is_heart[0]
+        self.is_heart = self.sp.current_user_saved_tracks_contains(
+            [self.song['item']['uri']])[0]
+        return self.is_heart
 
     def next_track(self):
         self.sp.next_track()
@@ -107,7 +118,12 @@ class Spotify:
         self.countdown_ms = self.song['item']['duration_ms'] - \
             self.song['progress_ms']
         self.is_track_liked()
+        self.get_audio_analysis()
         return self.song['item']
+
+    def get_audio_analysis(self):
+        self.aa = self.sp.audio_analysis(self.song['item']['id'])
+        return int(self.aa['track']['tempo'])
 
         # Change track
         # sp.start_playback(uris=['spotify:track:6gdLoMygLsgktydTQ71b15'])
