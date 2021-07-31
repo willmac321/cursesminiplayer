@@ -9,6 +9,8 @@ import spotipy
 import spotipy.util as util
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
+import selenium import webdriver
+
 
 load_dotenv(verbose=True)
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
@@ -30,7 +32,9 @@ class Spotify:
         self.sp = None
 
     def login(self):
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET))
+        driver = webdriver.Chrome()
+        auth = SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET)
+        self.sp = spotipy.Spotify(auth_manager=auth)
 
     def update_countdown_percent(self):
         return self.update_countdown() / self.song['item']['duration_ms']
