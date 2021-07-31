@@ -2,6 +2,9 @@
 *.swp
 *.orig
 .env
-*.env*
+*.env
 .cache*
 */__pycache__/
+*/player/__pycache__/
+*.venv
+__pycache__/

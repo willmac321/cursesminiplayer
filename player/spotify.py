@@ -8,6 +8,7 @@ from time import monotonic, time
 import spotipy
 import spotipy.util as util
 from dotenv import load_dotenv
+from spotipy.oauth2 import SpotifyOAuth
 
 load_dotenv(verbose=True)
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
@@ -30,14 +31,14 @@ class Spotify:
         self.username = None
 
     def login(self):
+        print(sys.argv[1])
         if len(sys.argv) > 1:
             self.username = sys.argv[1]
         else:
             print("Usage: %s username" % (sys.argv[0],))
             sys.exit()
 
-        token = util.prompt_for_user_token(self.username, self.scope)
-        self.sp = spotipy.Spotify(auth=token)
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET))
 
     def update_countdown_percent(self):
         return self.update_countdown() / self.song['item']['duration_ms']
