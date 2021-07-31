@@ -28,16 +28,8 @@ class Spotify:
         self.is_heart = False
         self.aa = None
         self.sp = None
-        self.username = None
 
     def login(self):
-        print(sys.argv[1])
-        if len(sys.argv) > 1:
-            self.username = sys.argv[1]
-        else:
-            print("Usage: %s username" % (sys.argv[0],))
-            sys.exit()
-
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET))
 
     def update_countdown_percent(self):
