@@ -81,7 +81,7 @@ class Main:
         k = 0
 
         start_second = monotonic()
-        start_half_second = monotonic()
+        start_four_second = monotonic()
         start_ms = monotonic() * 1000
 
         self.curse_window = self.start_curses()
@@ -89,10 +89,6 @@ class Main:
         self.curse_window.print_info()
         self.curse_window.marquee()
         self.curse_window.update_heart_button(self.spotify.is_heart)
-
-#        if self.spotify.aa:
-#            bpm = self.spotify.get_audio_analysis()
-#            self.curse_window.debug(str(bpm))
 
         while k != ord('q'):
             self.curse_window.print_info()
@@ -112,15 +108,15 @@ class Main:
                 self.curse_window.allscr.clear()
                 self.curse_window.draw_boxes()
 
-            if (monotonic() - start_half_second) > .5:
-                start_half_second=monotonic()
-                self.curse_window.marquee()
+            if (monotonic() - start_four_second) > 4:
+                start_four_second=monotonic()
+                track_info = self.spotify.get_track()
             if (monotonic() - start_second) > 1:
                 start_second = monotonic()
+                self.curse_window.marquee()
                 self.curse_window.update_status_bar(
                     self.spotify.update_countdown_percent())
                 self.curse_window.update_heart_button(self.spotify.is_heart)
-                track_info = self.spotify.get_track()
 
                 if self.curse_window:
                     self.curse_window.add_to_info_q(track_info)

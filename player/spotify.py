@@ -9,13 +9,13 @@ import spotipy
 import spotipy.util as util
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
-import selenium import webdriver
+import requests
 
 
 load_dotenv(verbose=True)
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
 SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
-SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPiY_REDIRECT_URI")
+SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI")
 
 
 class Spotify:
@@ -31,8 +31,22 @@ class Spotify:
         self.aa = None
         self.sp = None
 
+    def make_req(self):
+        r = requests.get(f'https://accounts.spotify.com/authorize?client_id={SPOTIPY_CLIENT_ID}&response_type=code&redirect_uri={SPOTIPY_REDIRECT_URI}&scope={self.scope}',allow_redirects=True)
+
+        print(r.url)
+        print(r)
+        # r = requests.get((r.history[0].headers['location']))
+        r = requests.get(r.url)
+        #print(r)
+        #print(r.__dict__)
+        #for resp in r.history:
+
+        #    print(resp.headers['location'], resp.status_code, resp.url)
+        exit()
+
     def login(self):
-        driver = webdriver.Chrome()
+        self.make_req()
         auth = SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET)
         self.sp = spotipy.Spotify(auth_manager=auth)
 
