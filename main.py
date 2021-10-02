@@ -22,9 +22,8 @@ class stdOut:
 
 class Main:
 
-    def __init__(self):
+    def __init__(self, headless = False):
 
-        self.menu_items = ['Log In']
         self.curse_window = None
         self.curse_thread = None
         self.spotify = None
@@ -32,6 +31,7 @@ class Main:
         self.spotify_event = None
         self.spotify_thread = None
         self.log = stdOut()
+        self.headless = headless
 
         self.start_spotify()
 
@@ -39,6 +39,11 @@ class Main:
 
     def start_curses(self):
         return Curse()
+
+    def get_track(self):
+        if self.spotify:
+            return self.spotify.get_track()
+        return None
 
     def start_spotify(self):
         self.spotify = Spotify()
@@ -85,52 +90,58 @@ class Main:
         start_ms = monotonic() * 1000
         track_info = None
 
-        self.curse_window = self.start_curses()
-        self.curse_window.draw_boxes()
-        self.curse_window.print_info()
-        self.curse_window.marquee()
-        self.curse_window.update_heart_button(self.spotify.is_heart)
+        if not self.headless:
+            self.curse_window = self.start_curses()
+            self.curse_window.draw_boxes()
+            self.curse_window.print_info()
+            self.curse_window.marquee()
+            self.curse_window.update_heart_button(self.spotify.is_heart)
 
         while k != ord('q'):
-            self.curse_window.print_info()
+            if not self.headless:
+                self.curse_window.print_info()
 
-            k = self.curse_window.stdscr.getch()
+                k = self.curse_window.stdscr.getch()
 
-            if k == curses.KEY_MOUSE:
-                _, x, y, _, _ = curses.getmouse()
-                inp = self.curse_window.mouse_click(x, y)
-                if inp is not None:
-                    self.spotify.handle_input(inp)
-                    self.reset_spotify_thread()
-                    self.curse_window.update_play_button(
-                        not self.spotify.is_playing)
+                if k == curses.KEY_MOUSE:
+                    _, x, y, _, _ = curses.getmouse()
+                    inp = self.curse_window.mouse_click(x, y)
+                    if inp is not None:
+                        self.spotify.handle_input(inp)
+                        self.reset_spotify_thread()
+                        self.curse_window.update_play_button(
+                            not self.spotify.is_playing)
 
-            if k == curses.KEY_RESIZE:
-                self.curse_window.allscr.clear()
-                self.curse_window.draw_boxes()
+                if k == curses.KEY_RESIZE:
+                    self.curse_window.allscr.clear()
+                    self.curse_window.draw_boxes()
 
             if (monotonic() - start_four_second) > 1:
                 start_four_second=monotonic()
                 track_info = self.spotify.get_track()
             if (monotonic() - start_second) > 1:
                 start_second = monotonic()
-                self.curse_window.marquee()
-                self.curse_window.update_status_bar(
-                    self.spotify.update_countdown_percent())
-                self.curse_window.update_heart_button(self.spotify.is_heart)
+                if not self.headless:
+                    self.curse_window.marquee()
+                    self.curse_window.update_status_bar(
+                        self.spotify.update_countdown_percent())
+                    self.curse_window.update_heart_button(self.spotify.is_heart)
 
-                if self.curse_window and track_info:
-                    self.curse_window.add_to_info_q(track_info)
+                    if self.curse_window and track_info:
+                        self.curse_window.add_to_info_q(track_info)
 
 
             if (monotonic() * 1000 - start_ms) > 100:
                 start_ms = monotonic() * 1000
-                if self.spotify.aa:
-                    self.curse_window.draw_vis(self.spotify.update_countdown(),
-                                               self.spotify.aa)
+
+                if not self.headless:
+                    if self.spotify.aa:
+                        self.curse_window.draw_vis(self.spotify.update_countdown(),
+                                                   self.spotify.aa)
                 # self.log.write(self.spotify.get_audio_analysis())
 
-        self.curse_window.kill()
+        if not self.headless:
+            self.curse_window.kill()
 
         self.stop_scheduler_spotify()
 
