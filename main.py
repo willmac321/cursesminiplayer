@@ -109,7 +109,7 @@ class Main:
                 self.curse_window.allscr.clear()
                 self.curse_window.draw_boxes()
 
-            if (monotonic() - start_four_second) > 4:
+            if (monotonic() - start_four_second) > 1:
                 start_four_second=monotonic()
                 track_info = self.spotify.get_track()
             if (monotonic() - start_second) > 1:

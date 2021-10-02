@@ -40,18 +40,7 @@ class Spotify:
         return self.update_countdown() / self.song['item']['duration_ms']
 
     def update_countdown(self):
-        # return percent
-        if self.is_playing:
-            elapsed = self.song['progress_ms'] + \
-                (int(round(time() * 1000)) - self.song['timestamp'])
-        else:
-            elapsed = self.song['progress_ms']
-
-        return elapsed
-
-    # , self.song['item']['duration_ms'], self.song['progress_ms'],
-    # int(round(time() * 1000)), self.song['timestamp'],
-    # (int(round(time() * 1000)) - self.song['timestamp'])
+        return self.song['progress_ms']
 
     def handle_input(self, inp):
         if inp == 'next':
@@ -101,12 +90,8 @@ class Spotify:
         return self.get_track()
 
     def seek_track(self, percent):
-        # ms = monotonic() / 1000
         self.sp.seek_track(
             math.floor(self.song['item']['duration_ms'] * percent))
-        # self.song['item']['duration_ms'] = math.floor(
-        #     self.song['item']['duration_ms'] * percent +
-        #     (ms - monotonic() / 1000))
 
     def get_track(self):
         self.song = self.sp.currently_playing()
@@ -120,17 +105,3 @@ class Spotify:
     def get_audio_analysis(self):
         self.aa = self.sp.audio_analysis(self.song['item']['id'])
         return int(self.aa['track']['tempo'])
-
-        # Change track
-        # sp.start_playback(uris=['spotify:track:6gdLoMygLsgktydTQ71b15'])
-
-        # Change volume
-        # sp.volume(100)
-        # sleep(2)
-        # sp.volume(50)
-        # sleep(2)
-        # sp.volume(100)
-
-
-# Spotify().seek_track(.5)
-# s = Spotify()
