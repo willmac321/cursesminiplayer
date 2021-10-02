@@ -1,0 +1,3 @@
+INFO:spotipy.oauth2:User authentication requires interaction with your web browser. Once you enter your credentials and give authorization, you will be redirected to a url.  Paste that url you were directed to to complete the authorization.
+WARNING:spotipy.oauth2:Using `localhost` as redirect URI without a port. Specify a port (e.g. `localhost:8080`) to allow automatic retrieval of authentication code instead of having to copy and paste the URL your browser is redirected to.
+INFO:spotipy.oauth2:Opened https://accounts.spotify.com/authorize?client_id=d26c960ac22648668d2390a0f961e03a&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2F&scope=user-library-modify+user-library-read+user-modify-playback-state+user-read-playback-state in your browser

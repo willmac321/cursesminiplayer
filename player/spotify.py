@@ -23,7 +23,7 @@ class Spotify:
     def __init__(self):
 
         self.scope = "user-read-playback-state,user-modify-playback-state,user-library-modify,user-library-read"
-        self.song = None
+        self.song = {}
         self.timer = None
         self.countdown_ms = None
         self.is_playing = False
@@ -31,22 +31,8 @@ class Spotify:
         self.aa = None
         self.sp = None
 
-    def make_req(self):
-        r = requests.get(f'https://accounts.spotify.com/authorize?client_id={SPOTIPY_CLIENT_ID}&response_type=code&redirect_uri={SPOTIPY_REDIRECT_URI}&scope={self.scope}',allow_redirects=True)
-
-        print(r.url)
-        print(r)
-        # r = requests.get((r.history[0].headers['location']))
-        r = requests.get(r.url)
-        #print(r)
-        #print(r.__dict__)
-        #for resp in r.history:
-
-        #    print(resp.headers['location'], resp.status_code, resp.url)
-        exit()
 
     def login(self):
-        self.make_req()
         auth = SpotifyOAuth(scope=self.scope, client_id=SPOTIPY_CLIENT_ID, redirect_uri=SPOTIPY_REDIRECT_URI, client_secret=SPOTIPY_CLIENT_SECRET)
         self.sp = spotipy.Spotify(auth_manager=auth)
 
