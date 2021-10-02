@@ -83,6 +83,7 @@ class Main:
         start_second = monotonic()
         start_four_second = monotonic()
         start_ms = monotonic() * 1000
+        track_info = None
 
         self.curse_window = self.start_curses()
         self.curse_window.draw_boxes()
@@ -118,7 +119,7 @@ class Main:
                     self.spotify.update_countdown_percent())
                 self.curse_window.update_heart_button(self.spotify.is_heart)
 
-                if self.curse_window:
+                if self.curse_window and track_info:
                     self.curse_window.add_to_info_q(track_info)
 
 
