@@ -45,16 +45,16 @@ x = 0
 font = ImageFont.load_default()
 
 # start spotipy stuff headlessly
-proc = Main(headless=True)
+# proc = Main(headless=True)
 
 while True:
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    # Display image.
+    # # Display image.
     disp.image(image)
     disp.show()
-    time.sleep(0.1)
+    time.sleep(.2)
 
     # Shell scripts for system monitoring from here:
     # https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
@@ -69,9 +69,9 @@ while True:
 
     # Write four lines of text.
 
-    track = proc.get_track()
+    # track = proc.get_track()
 
-    print(track)
+    # print(track)
 
     draw.text((x, top + 0), "IP: " + IP, font=font, fill=255)
     draw.text((x, top + 8), "CPU load: " + CPU, font=font, fill=255)
@@ -81,4 +81,4 @@ while True:
     # Display image.
     disp.image(image)
     disp.show()
-    time.sleep(0.1)
+    time.sleep(0.5)
